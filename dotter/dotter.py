@@ -3,9 +3,9 @@ import numpy as np;
 points = []
 frame = cv2.imread("C:/Users/jimjt/Pictures/Screenshots/Screenshot 2025-07-28 221547.png")
 image = frame.copy()
-with open("points.txt", "r") as file:
-    content = file.read()
-    lines = content.split("&")
+with open("dotter/points.txt", "r") as file:
+    content = file.read().replace("\\n", "\n")
+    lines = content.split("\n")
     lines = [str(x).replace("[", "").replace("]", "").replace("(", "").replace(")", "").split(",") for x in lines]
     if len(content) > 1:
         for i in range(len(lines)):
@@ -48,9 +48,9 @@ while True:
 if len(points) < 2:
     cv2.destroyAllWindows()
     exit()
-with open("points.txt", "w") as file:
+with open("dotter/points.txt", "w") as file:
     if len(content) < 2:
         file.write(str(points))
     else:
-        file.write(str(content)+"&"+str(points))
+        file.write(str(content)+"\n"+str(points))
 cv2.destroyAllWindows()
