@@ -5,13 +5,11 @@ points = []
 def onSegment(p, q, r):
     return (q[0] <= max(p[0], r[0]) and q[0] >= min(p[0], r[0]) and
             q[1] <= max(p[1], r[1]) and q[1] >= min(p[1], r[1]))
-
 def orientation(p, q, r):
     val = (q[1] - p[1]) * (r[0] - q[0]) - (q[0] - p[0]) * (r[1] - q[1])
     if val == 0:
         return 0  # collinear
     return 1 if val > 0 else 2  # clockwise or counterclockwise
-
 def doIntersect(p1, q1, p2, q2):
     o1 = orientation(p1, q1, p2)
     o2 = orientation(p1, q1, q2)
@@ -46,17 +44,44 @@ def intersection(p1, q1, p2, q2):
     x = (B2 * C1 - B1 * C2) / determinant
     y = (A1 * C2 - A2 * C1) / determinant
     return (x, y)
+def readFile(file="dotter/points.txt"):
+    with open(file, "r") as f:
+        content = f.read().replace("\\n", "\n")
+        lines = content.split("\n")
+        lines = [str(x).replace("[", "").replace("]", "").replace("(", "").replace(")", "").split(",") for x in lines]
+        if len(content) > 1:
+            for i in range(len(lines)):
+                if len(lines[i]) > 1:
+                    lines[i] = [[lines[i][x], lines[i][x+1]] for x in range(0, len(lines[i]), 2)]
+                    lines[i] = [[int(y) for y in x] for x in lines[i]]
+    return lines, content
+def writeFile(content, points, file="dotter/points.txt"):
+    with open("dotter/points.txt", "w") as file:
+        if len(content) < 2:
+            file.write(str(points))
+        else:
+            file.write(str(content)+"\n"+str(points))
+def mouse_callback(event, x, y, flags, params):
+    if event == 1:
+        print(f"coords {x, y}")
+        points.append((x, y))
+        cv2.circle(image, (x, y), 5, (255, 0, 0), -1)
+        if len(points) > 1:
+            cv2.line(image, points[-2], points[-1], (255, 0, 0), 2)
+    elif event == 2:
+        if points:
+            points.pop()
+            image[:] = frame.copy()
+            for i, point in enumerate(points):
+                cv2.circle(image, point, 5, (0, 0, 255), -1)
+                if i > 0:
+                    cv2.line(image, points[i - 1], point, (255, 0, 0), 2)
+
+
+
 frame = cv2.imread("C:/Users/jimjt/Pictures/Screenshots/Screenshot 2025-07-28 221547.png")
 image = frame.copy()
-with open("dotter/points.txt", "r") as file:
-    content = file.read().replace("\\n", "\n")
-    lines = content.split("\n")
-    lines = [str(x).replace("[", "").replace("]", "").replace("(", "").replace(")", "").split(",") for x in lines]
-    if len(content) > 1:
-        for i in range(len(lines)):
-            if len(lines[i]) > 1:
-                lines[i] = [[lines[i][x], lines[i][x+1]] for x in range(0, len(lines[i]), 2)]
-                lines[i] = [[int(y) for y in x] for x in lines[i]]
+lines, content = readFile()
 if len(content) > 1:
     for points in lines:
         print(points)
@@ -80,21 +105,6 @@ for i in range(len(lines)):
 
 savedLines = lines.copy()
 points = []
-def mouse_callback(event, x, y, flags, params):
-    if event == 1:
-        print(f"coords {x, y}")
-        points.append((x, y))
-        cv2.circle(image, (x, y), 5, (255, 0, 0), -1)
-        if len(points) > 1:
-            cv2.line(image, points[-2], points[-1], (255, 0, 0), 2)
-    elif event == 2:
-        if points:
-            points.pop()
-            image[:] = frame.copy()
-            for i, point in enumerate(points):
-                cv2.circle(image, point, 5, (0, 0, 255), -1)
-                if i > 0:
-                    cv2.line(image, points[i - 1], point, (255, 0, 0), 2)
 reRun = False
 while True:
     cv2.namedWindow("image")
@@ -103,20 +113,19 @@ while True:
     key = cv2.waitKey(1)
     if key == ord('q'):
         break
-    if key == ord('r'):
+    if key == ord('r') or key == ord('n'):
         reRun = True
         break
+
 if len(points) < 2:
     cv2.destroyAllWindows()
     if reRun:
         import os
         os.system("python dotter/dotter.py")
     exit()
-with open("dotter/points.txt", "w") as file:
-    if len(content) < 2:
-        file.write(str(points))
-    else:
-        file.write(str(content)+"\n"+str(points))
+
+writeFile(content, points)
+
 cv2.destroyAllWindows()
 if reRun:
     import os
