@@ -79,7 +79,7 @@ def mouse_callback(event, x, y, flags, params):
 
 
 
-frame = cv2.imread("C:/Users/jimjt/Pictures/Screenshots/Screenshot 2025-07-28 221547.png")
+frame = cv2.imread("dotter/Screenshot 2025-07-28 221547.png")
 image = frame.copy()
 lines, content = readFile()
 if len(content) > 1:
