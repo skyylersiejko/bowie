@@ -6,14 +6,15 @@ class GraphPoint {
 public:
     int x;
     int y;
-    std::vector<GraphPoint> connections = std::vector<GraphPoint>();
-    GraphPoint(int x, int y) : x(x), y(y) {}
-    void addConection(GraphPoint& p) {
+    std::string name;
+    std::vector<GraphPoint*> connections;
+    GraphPoint(std::string name, int x, int y) : name(name), x(x), y(y) {}
+    void addConection(GraphPoint* p) {
         this->connections.push_back(p);
     }
-    void removeConection(GraphPoint& p) {
+    void removeConection(GraphPoint* p) {
         this->connections.erase(std::remove_if(this->connections.begin(), this->connections.end(),
-                                               [&p](const GraphPoint& gp) { return gp.x == p.x && gp.y == p.y; }),
+                                               [&p](const GraphPoint* gp) { return gp->x == p->x && gp->y == p->y; }),
                                 this->connections.end());
     }
 };
@@ -136,13 +137,13 @@ int main() {
     // Close the file
     f.close();
     std::cout << "read text file\n plotting main points\n";
-    std::vector<GraphPoint> graph;
+    std::vector<GraphPoint*> graph;
     for (int i = 0; i < lines.size(); i++) {
         for (int j = 0; j < lines[i].size(); j++) {
-            GraphPoint temp = GraphPoint(lines[i][j].x, lines[i][j].y);
+            GraphPoint* temp = new GraphPoint(std::to_string(graph.size()), lines[i][j].x, lines[i][j].y);
             if (j > 0) {
-                temp.addConection(graph.back());
-                graph.back().addConection(temp);
+                temp->addConection(graph.back());
+                graph.back()->addConection(temp);
             }
             graph.push_back(temp);
         }
@@ -161,7 +162,7 @@ int main() {
                             intersectingPoints.append(point)
                             cv2.circle(image, (round(point[0]), round(point[1])), 3, (0, 255, 255), -1)
     */
-    std::cout << "main points graphed\nfinding intersections";
+    std::cout << "main points graphed\nfinding intersections\n";
     std::vector<point> intersectingPoints;
     std::vector<GraphPoint> tempIntersectionGraph;
     std::vector<std::vector<int>> intersectionConnections;
@@ -175,15 +176,7 @@ int main() {
                             continue;
                         }
                         intersectingPoints.push_back(p);
-                        /*GraphPoint tempNode = GraphPoint(p.x, p.y);
-                        int requiredNodesIndeces[4] = {i*k+k, j*l+l, i*k+k+1, j*l+l+1};
-                        for (int m = 0; m < 4; m++) {
-                            graph[requiredNodesIndeces[m]].addConection(tempNode);
-                            tempNode.addConection(graph[requiredNodesIndeces[m]]);
-                            graph[requiredNodesIndeces[m]].removeConection(graph[requiredNodesIndeces[(m+2)%4]]);
-                        }
-                        tempIntersectionGraph.push_back(tempNode);*/
-                        std::vector<int> tempConnection = {i*(lines[0].size()-1)+k, j*(lines[0].size()-1)+l, i*(lines[0].size()-1)+k+1, j*(lines[0].size()-1)+l+1};
+                        std::vector<int> tempConnection = {i*((int)lines[0].size()-1)+k, j*((int)lines[0].size()-1)+l, i*((int)lines[0].size()-1)+k+1, j*((int)lines[0].size()-1)+l+1};
                         intersectionConnections.push_back(tempConnection);
                     }
                 }
@@ -197,17 +190,48 @@ int main() {
         int k = intersectionConnections[n][2] / (lines[0].size() - 1);
         int l = intersectionConnections[n][3] / (lines[0].size() - 1);
         point p = intersectingPoints[n];
-        GraphPoint tempNode = GraphPoint(p.x, p.y);
+        GraphPoint* tempNode = new GraphPoint(std::to_string(graph.size()+tempIntersectionGraph.size()), p.x, p.y);
         int requiredNodesIndeces[4] = {i, j, k, l};
         for (int m = 0; m < 4; m++) {
-            graph[requiredNodesIndeces[m]].addConection(tempNode);
-            tempNode.addConection(graph[requiredNodesIndeces[m]]);
-            graph[requiredNodesIndeces[m]].removeConection(graph[requiredNodesIndeces[(m+2)%4]]);
+            graph[requiredNodesIndeces[m]]->addConection(tempNode);
+            tempNode->addConection(graph[requiredNodesIndeces[m]]);
+            graph[requiredNodesIndeces[m]]->removeConection(graph[requiredNodesIndeces[(m+2)%4]]);
         }
-        tempIntersectionGraph.push_back(tempNode);
+        tempIntersectionGraph.push_back(*tempNode);
     }
-    //graph.insert(graph.end(), tempIntersectionGraph.begin(), tempIntersectionGraph.end());
+    for (int i = 0; i < tempIntersectionGraph.size(); i++) {
+        GraphPoint* temp = new GraphPoint(std::to_string(graph.size()), tempIntersectionGraph[i].x, tempIntersectionGraph[i].y);
+        for (GraphPoint* conn : tempIntersectionGraph[i].connections) {
+            temp->addConection(conn);
+        }
+        graph.push_back(temp);
+    }
     std::cout << "intersections found\n";
-    std::cout << "total points: " << graph.size() << intersectingPoints.size() << "\n";
+    std::cout << "total points: " << graph.size() << "\n";
+    //check if there are any repeat names
+    for (int i = 0; i < graph.size(); i++) {
+        for (int j = i + 1; j < graph.size(); j++) {
+            if (graph[i]->name == graph[j]->name) {
+                std::cout << "duplicate name found: " << graph[i]->name << "\nAborting\n";
+                return 1;
+            }
+        }
+    }
+    std::cout << "no duplicate names found\n";
+    std::cout << "graph complete\n";
+    std::cout << "writing to file\n";
+    std::ofstream outFile("dotter/graph.json");
+    outFile << "{\n";
+    for (int i = 0; i < graph.size(); i++) {
+        GraphPoint currentNode = *graph[i];
+        outFile << "\"" << currentNode.name << "\": {\"x\":" << currentNode.x << ", \"y\":" << currentNode.y << ", \"connections\": [";
+        for (int j = 0; j < currentNode.connections.size(); j++) {
+            outFile << "\"" << currentNode.connections[j]->name << "\"" << (j == currentNode.connections.size() - 1 ? "" : ", ");
+        }
+        outFile << "]}" << (i == graph.size() - 1 ? "}" : ",\n");
+    }
+    outFile.close();
+    std::cout << "file written\n";
+    std::cout << "exiting\n";
     return 0;
 }
