@@ -44,7 +44,7 @@ def intersection(p1, q1, p2, q2):
     x = (B2 * C1 - B1 * C2) / determinant
     y = (A1 * C2 - A2 * C1) / determinant
     return (x, y)
-def readFile(file="dotter/points.txt"):
+def readFile(file="points.txt"):
     with open(file, "r") as f:
         content = f.read().replace("\\n", "\n")
         lines = content.split("\n")
@@ -55,8 +55,8 @@ def readFile(file="dotter/points.txt"):
                     lines[i] = [[lines[i][x], lines[i][x+1]] for x in range(0, len(lines[i]), 2)]
                     lines[i] = [[int(y) for y in x] for x in lines[i]]
     return lines, content
-def writeFile(content, points, file="dotter/points.txt"):
-    with open("dotter/points.txt", "w") as file:
+def writeFile(content, points, file="points.txt"):
+    with open("points.txt", "w") as file:
         if len(content) < 2:
             file.write(str(points))
         else:
@@ -79,7 +79,7 @@ def mouse_callback(event, x, y, flags, params):
 
 
 
-frame = cv2.imread("dotter/Screenshot 2025-07-28 221547.png")
+frame = cv2.imread("Screenshot_2025-07-28_221547.png")
 image = frame.copy()
 lines, content = readFile()
 if len(content) > 1:
