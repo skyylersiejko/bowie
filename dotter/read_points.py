@@ -1,43 +1,26 @@
+import json
+
 class Point:
-    def __init__(self):
-        self.x = None
-        self.y = None 
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
 setofPoints = []
-tuplesofPoints = ""
 
-
-points = "points.txt" 
 try:
-    with open(points, 'r') as file:
-        for line in file:
-            text = line
-            for i in range(len(text)):
-                if text[i] != "[" and text[i] != "]" and text[i] != ",":
-                    tuplesofPoints += text[i]
-                
+    with open("graph.json", 'r') as file:
+        points = json.load(file)
 
-    print(tuplesofPoints)
+    for i in range(len(points)):
+        other_i = str(i)
+        point_data = Point(points[other_i]["x"], points[other_i]["y"])
+        setofPoints.append(point_data)
+        globals()[f"p{i}"] = point_data
+
+    print(setofPoints)
+    print(p1.x*p5.y)
+        
     pass
 except FileNotFoundError:
-    print(f"Error: The file '{points}' was not found.")
-except Exception as e:
-    print(f"An error occurred: {e}")
+    print(f"Error: The file was not found.")
 
-n = 0 
-m = 0
-
-'''
-dictofPoints{
-
-}
-count = 0
-while True:
-'''
-    
-    
-   
-
-
-
-        
 file.close()
