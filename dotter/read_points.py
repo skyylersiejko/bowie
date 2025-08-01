@@ -53,6 +53,9 @@ try:
 except FileNotFoundError:
     print(f"Error: The file was not found.")
 
+<<<<<<< Updated upstream
 
 
 file.close()
+=======
+>>>>>>> Stashed changes
