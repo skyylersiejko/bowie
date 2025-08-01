@@ -6,6 +6,12 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include <bits/stdc++.h>
+#include <queue>
+#include <unordered_map>
+#include <limits>
+
+const int INF = std::numeric_limits<int>::max();
 
 class Node {
 public:
@@ -13,8 +19,6 @@ public:
     std::vector<std::string> connections;
     int x;
     int y;
-    int distance = INT32_MAX;
-
     Node(std::string n, int x, int y, std::vector<std::string> c) : x(x), y(y), name(n), connections(c) {}
 };
 
@@ -30,6 +34,81 @@ int countChar(std::string str, std::string substr) {
     return total;
 }
 
+std::vector<std::string> split(const std::string& str, char delimiter) {
+    std::vector<std::string> tokens;
+    std::string token;
+    for (char c : str) {
+        if (c == delimiter) {
+            if (!token.empty()) tokens.push_back(token);
+            token.clear();
+        } else {
+            token += c;
+        }
+    }
+    if (!token.empty()) tokens.push_back(token);
+    return tokens;
+}
+
+std::vector<std::string> dijkstraPath(std::vector<Node>& ParsedPoints, std::string startName, std::string endName) {
+    std::vector<std::vector<std::pair<int, int>>> graph(ParsedPoints.size());
+    std::unordered_map<std::string, int> nameToIndex;
+    for (int i = 0; i < ParsedPoints.size(); i++) {
+        nameToIndex[ParsedPoints[i].name] = i;
+    }
+    for (int i = 0; i < ParsedPoints.size(); i++) {
+        for (const auto& connName : ParsedPoints[i].connections) {
+            if (nameToIndex.find(connName) != nameToIndex.end()) {
+                int j = nameToIndex[connName];
+                int weight = static_cast<int>(sqrt(pow(ParsedPoints[i].x - ParsedPoints[j].x, 2) + pow(ParsedPoints[i].y - ParsedPoints[j].y, 2)));
+                graph[i].push_back({j, weight});
+            }
+        }
+    }
+    int start = nameToIndex[startName];
+    int end = nameToIndex[endName];
+    int n = ParsedPoints.size();
+    std::vector<int> dist(n, INF);
+    std::vector<bool> visited(n, false);
+    std::vector<std::string> path;
+    std::vector<std::string> currentPath;
+    dist[start] = 0;
+
+    // min-heap of (distance, node)
+    std::priority_queue<std::pair<int,int>, std::vector<std::pair<int,int>>, std::greater<std::pair<int,int>>> pq;
+    pq.push(std::make_pair(0, start));
+
+    while (!pq.empty()) {
+        int current = pq.top().second;
+        int current_dist = pq.top().first;
+        pq.pop();
+
+        if (visited[current]) continue;
+        visited[current] = true;
+
+        // relax edges
+        for (const auto& edge : graph[current]) {
+            int neighbor = edge.first;
+            currentPath.push_back(ParsedPoints[current].name);
+            int weight = edge.second;
+            if (!visited[neighbor] && current_dist != INF) {
+                int new_dist = current_dist + weight;
+                if (new_dist < dist[neighbor]) {
+                    dist[neighbor] = new_dist;
+                    path.clear();
+                    for (int i = 0; i < currentPath.size(); i++) {if (path.empty() || path.back() != currentPath[i]) {path.push_back(currentPath[i]);}}
+                    path.push_back(ParsedPoints[neighbor].name);
+                    pq.push(std::make_pair(new_dist, neighbor));
+                }
+            } else if (neighbor == end) {
+                pq.push(std::make_pair(current_dist + weight, neighbor));
+                break;
+            }
+        }
+    }
+
+    return path;
+}
+
 Node findNodeByName(const std::vector<Node>& nodes, const std::string& name) {
     for (const auto& node : nodes) {
         if (node.name == name) {
@@ -39,7 +118,67 @@ Node findNodeByName(const std::vector<Node>& nodes, const std::string& name) {
     throw std::runtime_error("Node not found"+name);
 }
 
-int main() {
+std::vector<int> dijkstraFind(std::vector<Node>& ParsedPoints, std::string startName, std::string endName) {
+    std::vector<std::vector<std::pair<int, int>>> graph(ParsedPoints.size());
+    std::unordered_map<std::string, int> nameToIndex;
+    for (int i = 0; i < ParsedPoints.size(); i++) {
+        nameToIndex[ParsedPoints[i].name] = i;
+    }
+    for (int i = 0; i < ParsedPoints.size(); i++) {
+        for (const auto& connName : ParsedPoints[i].connections) {
+            if (nameToIndex.find(connName) != nameToIndex.end()) {
+                int j = nameToIndex[connName];
+                int weight = static_cast<int>(sqrt(pow(ParsedPoints[i].x - ParsedPoints[j].x, 2) + pow(ParsedPoints[i].y - ParsedPoints[j].y, 2)));
+                graph[i].push_back({j, weight});
+            }
+        }
+    }
+    int start = nameToIndex[startName];
+    int end = nameToIndex[endName];
+    int n = ParsedPoints.size();
+    std::vector<int> dist(n, INF);
+    std::vector<bool> visited(n, false);
+    dist[start] = 0;
+
+    // min-heap of (distance, node)
+    std::priority_queue<std::pair<int,int>, std::vector<std::pair<int,int>>, std::greater<std::pair<int,int>>> pq;
+    pq.push(std::make_pair(0, start));
+
+    while (!pq.empty()) {
+        int current = pq.top().second;
+        int current_dist = pq.top().first;
+        pq.pop();
+
+        if (visited[current]) continue;
+        visited[current] = true;
+
+        // relax edges
+        for (const auto& edge : graph[current]) {
+            int neighbor = edge.first;
+            int weight = edge.second;
+            if (!visited[neighbor] && current_dist != INF) {
+                int new_dist = current_dist + weight;
+                if (new_dist < dist[neighbor]) {
+                    dist[neighbor] = new_dist;
+                    pq.push(std::make_pair(new_dist, neighbor));
+                }
+            } else if (neighbor == end) {
+                pq.push(std::make_pair(current_dist + weight, neighbor));
+                break;
+            }
+        }
+    }
+
+    return dist;
+}
+
+int main(int argc, char* argv[]) {
+    std::string p1 = "5"; // Default start point
+    std::string p2 = "131"; // Default end point
+    if (argc >= 3) {
+        p1 = argv[1];
+        p2 = argv[2];
+    }
     std::ifstream f("dotter/graph.json");
 
     // Check if the file is 
@@ -74,77 +213,50 @@ int main() {
     for (int i = 0; i < unParsedPoints.size(); i++) {
         std::string x = unParsedPoints[i][1].substr(unParsedPoints[i][1].find("\"x\":")+4, unParsedPoints[i][1].find(",") - unParsedPoints[i][1].find("\"x\":")-4);
         std::string y = unParsedPoints[i][1].substr(unParsedPoints[i][1].find("\"y\":")+4, unParsedPoints[i][1].find(",", 10) - unParsedPoints[i][1].find("\"y\":")-4);
-        std::string connectionsString = unParsedPoints[i][1].substr(unParsedPoints[i][1].find("[")+1, unParsedPoints[i][1].find("]") - unParsedPoints[i][1].find("[")-1);
+        std::string connectionsString = unParsedPoints[i][1].substr(
+            unParsedPoints[i][1].find("[")+1,
+            unParsedPoints[i][1].find("]") - unParsedPoints[i][1].find("[")-1
+        );
         std::vector<std::string> connections;
-        int start = 0;
-        for (int j = 0; j < countChar(connectionsString, ",")+1; j++) {
-            std::string currentName = connectionsString.substr(start+1, connectionsString.find(",")-2);
-            start = connectionsString.find(",")+2;
-            if (currentName == "" && std::find(connections.begin(), connections.end(), currentName) != connections.end()) break;
-            connections.push_back(currentName);
+        for (auto conn : split(connectionsString, ',')) {
+            // Remove quotes and whitespace
+            conn.erase(std::remove(conn.begin(), conn.end(), '"'), conn.end());
+            conn.erase(std::remove_if(conn.begin(), conn.end(), ::isspace), conn.end());
+            if (!conn.empty()) connections.push_back(conn);
         }
         ParsedPoints.push_back(Node(unParsedPoints[i][0], std::stoi(x), std::stoi(y), connections));
     }
-    std::cout << "enter name of start point: ";
+    /*std::cout << "enter name of start point: ";
     std::string p1, p2;
     std::cin >> p1;
     std::cout << "enter name of end point: ";
-    std::cin >> p2;
+    std::cin >> p2;*/
 
     // Implement Dijkstra's algorithm here to find the shortest path from p1 to p2
     std::cout << "Starting Dijkstra's algorithm from " << p1 << " to " << p2 << std::endl;
-    Node* startNode = nullptr;
-    for (auto& node : ParsedPoints) {
-        if (node.name == p1) {
-            startNode = &node;
-            break;
-        }
+    //std::cout << findNodeByName(ParsedPoints, "5");
+    std::vector<int> shortestDistance = dijkstraFind(ParsedPoints, p1, p2);
+    std::cout << "Shortest distance from " << p1 << " to " << p2 << " is: ";
+    if (shortestDistance[std::distance(ParsedPoints.begin(), std::find_if(ParsedPoints.begin(), ParsedPoints.end(), [&](const Node& n){ return n.name == p2; }))] == INF) {
+        std::cout << "No path found." << std::endl;
+    } else {
+        std::cout << shortestDistance[std::distance(ParsedPoints.begin(), std::find_if(ParsedPoints.begin(), ParsedPoints.end(), [&](const Node& n){ return n.name == p2; }))] << std::endl;
     }
-    if (!startNode) {
-        std::cerr << "Start node not found!" << std::endl;
-        return 1;
+    std::vector<std::string> path;
+    path = dijkstraPath(ParsedPoints, p1, p2);
+
+    std::cout << "Path found, writing to file";
+
+    std::ofstream outFile("dotter/bestPath.json");
+    outFile << "{\n";
+    for (int i = 0; i < path.size()-1; i++) {
+        Node currentNode = findNodeByName(ParsedPoints, path[i]);
+        outFile << "\"" << currentNode.name << "\": {\"x\":" << currentNode.x << ", \"y\":" << currentNode.y << ", \"connections\": [";
+        outFile << (i == path.size() - 1 ? "" : "\"") << (i == path.size() - 1 ? "" :  path[i+1]);
+        outFile << "\"]}" << (i == path.size() - 2 ? "}" : ",\n");
     }
-    std::vector<std::string> visited;
-    std::vector<std::string> toVisit = names;
-    int currentDistance = 0;
-    bool solving = true;
-    int iterations = 0;
-    while (solving) {
-        std::cout << "Iteration " << iterations++ << ": at node " << startNode->name << " with current distance " << currentDistance << std::endl;
-        if (iterations > 1000) {
-            std::cout << "Too many iterations, stopping." << std::endl;
-            break;
-        }
-        if (startNode->name == p2) {
-            solving = false;
-            std::cout << "Path found!\n Distance=" << currentDistance << std::endl;
-        } else {
-            std::vector<int> distances;
-            for (int i = 0; i < startNode->connections.size(); i++) {
-                if (std::find(visited.begin(), visited.end(), startNode->connections[i]) != visited.end()) {
-                    distances.push_back(INT32_MAX);
-                    continue;
-                } else {
-                    Node n = findNodeByName(ParsedPoints, startNode->connections[i]);
-                    n.distance = currentDistance + static_cast<int>(sqrt(pow(n.x - startNode->x, 2) + pow(n.y - startNode->y, 2)));
-                    distances.push_back(n.distance);
-                }
-            }
-            int minIndex = std::min_element(distances.begin(), distances.end()) - distances.begin();
-            
-            std::string nextNodeName = startNode->connections[minIndex];
-            visited.push_back(startNode->name);
-            toVisit.erase(std::remove(toVisit.begin(), toVisit.end(), startNode->name), toVisit.end());
-            startNode = nullptr;
-            for (auto& node : ParsedPoints) {
-                if (node.name == nextNodeName) {
-                    startNode = &node;
-                    break;
-                }
-            }
-            currentDistance = distances[minIndex];
-        }
-    }
+    outFile.close();
+    std::cout << "Path written to dotter/bestPath.json\nexiting\n";
 
     return 0;
 }
