@@ -3,6 +3,13 @@ import cv2
 import numpy as np;
 from time import sleep
 
+class Point:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+setofPoints = []
+
 def mouse_callback(event, x, y, flags, params):
     if event == 1:
         print(f"coords {x, y}")
@@ -19,27 +26,9 @@ def mouse_callback(event, x, y, flags, params):
                 if i > 0:
                     cv2.line(image, points[i - 1], point, (255, 0, 255), 2)
 
-class Point:
-    def __init__(self, x, y, color):
-        self.x = x
-        self.y = y
-        self.color = color
-setofPoints = []
-
 try:
     frame = cv2.imread("Stanford_map.png")
     image = frame.copy()
-
-    with open("graph.json", 'r') as file:
-        points = json.load(file)
-        for data in points.values():
-            cv2.circle(image, (data["x"], data["y"]), 3, (255, 0, 255), -1)
-    
-    for i in range(len(points)):
-        other_i = str(i)
-        point_data = Point(points[other_i]["x"], points[other_i]["y"], (255, 0, 255))
-        setofPoints.append(point_data)
-        globals()[f"p{i}"] = point_data
 
     while True:
         cv2.namedWindow("image")
@@ -47,10 +36,18 @@ try:
         cv2.imshow("image", image)
         key = cv2.waitKey(1)
         if key == ord('q'):
-            break
+            break 
         if key == ord('r') or key == ord('n'):
             reRun = True
             break
+        cv2.circle(image, (710, 760), 3, (255, 0, 255), -1)
+
+#with open("bestPath.json", 'r') as file:
+ #       points = json.load(file)
+  #      for data in points.values():
+     
+
+    
     
     
 except FileNotFoundError:
