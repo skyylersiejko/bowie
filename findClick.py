@@ -1,6 +1,33 @@
 import cv2
 from math import sqrt, pow
 import numpy as np
+import json
+
+class Point:
+    def __init__(self, x, y, name):
+        self.x = x
+        self.y = y
+        self.name = name
+setofPoints = []
+
+
+
+try:
+    with open("dotter/graph.json", 'r') as file:
+        points = json.load(file)
+
+    for i in range(len(points)):
+        other_i = str(i)
+        point_data = Point(points[other_i]["x"], points[other_i]["y"], other_i)
+        setofPoints.append(point_data)
+        globals()[f"p{i}"] = point_data
+
+    print(setofPoints)
+        
+    file.close()
+    pass
+except FileNotFoundError:
+    print(f"Error: The file was not found.")
 
 def drawSprite(loc):
     for i in range(sprite.shape[0]):
@@ -8,22 +35,11 @@ def drawSprite(loc):
             if list(sprite[i][j]) != [232, 162, 0]:
                 image[i+loc[0]][j+loc[1]] = sprite[i][j]
 
-def readFile(file="dotter/points.txt"):
-    with open(file, "r") as f:
-        content = f.read().replace("\\n", "\n")
-        lines = content.split("\n")
-        lines = [str(x).replace("[", "").replace("]", "").replace("(", "").replace(")", "").split(",") for x in lines]
-        if len(content) > 1:
-            for i in range(len(lines)):
-                if len(lines[i]) > 1:
-                    lines[i] = [[lines[i][x], lines[i][x+1]] for x in range(0, len(lines[i]), 2)]
-                    lines[i] = [[int(y) for y in x] for x in lines[i]]
-    return lines, content
-
 allPoints = []
 
 def mouse_callback(event, x, y, flags, params, points=allPoints):
     if event == 1:
+        image = frame.copy()
         bestDist = 1000
         bestPoint = None
         if len(allPoints) == 0:
@@ -40,31 +56,18 @@ def mouse_callback(event, x, y, flags, params, points=allPoints):
 frame = cv2.imread("dotter/Screenshot 2025-07-28 221547.png")
 sprite = cv2.imread("treeWithBackground.png")
 sprite = cv2.resize(sprite, (sprite.shape[0]//2, sprite.shape[1]//2))
-frame.copy()
-lines, content = readFile()
-if len(content) > 1:
-    for points in lines:
-        print(points)
-        allPoints += points
-        px, py = -1, -1
-        for x, y in points:
-            cv2.circle(frame, (x, y), 3, (0, 0, 255), -1)
-            if px != -1:
-                cv2.line(frame, (x, y), (px, py), (0, 0, 255), 2)
-            px, py = x, y
-
-"""indecesToRemove = []
-for p1ind in range(len(allPoints)):
-    for p2ind in range(len(allPoints)-p1ind-1):
-        if allPoints[p1ind] == allPoints[p2ind]:
-            indecesToRemove.append(p2ind)
-indecesToRemove.sort(reverse=True)
-for index in indecesToRemove:
-    allPoints.pop(index)"""
+for i in setofPoints:
+    cv2.circle(frame, (i.x, i.y), 5, (255, 0, 0), -1)
+    allPoints.append((i.x, i.y))
+    lookFor = points[i.name]["connections"]
+    for j in setofPoints:
+        if j.name in lookFor:
+            print(j.name, lookFor)
+            cv2.line(frame, (j.x, j.y), (i.x, i.y), (255, 0, 0), 2)
 
 loc = [0, 0]
 image = frame.copy()
-#image[0:sprite.shape[0],0:sprite.shape[1],:] = sprite[0:sprite.shape[0],0:sprite.shape[1],:] #Background = 0, 162, 232
+#image = frame.copy()
 while True:
     cv2.namedWindow("Image")
     cv2.setMouseCallback("Image", mouse_callback)

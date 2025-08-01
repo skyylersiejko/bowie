@@ -101,7 +101,10 @@ std::vector<std::string> split(const std::string& str, char delimiter) {
     result.push_back(token); // Add the last token
     return result;
 }
-
+int uniqueNodeId = 0;
+auto getUniqueName = [&uniqueNodeId]() {
+    return std::to_string(uniqueNodeId++);
+};
 int main() {
 
     // Open the text file named 
@@ -140,7 +143,7 @@ int main() {
     std::vector<GraphPoint*> graph;
     for (int i = 0; i < lines.size(); i++) {
         for (int j = 0; j < lines[i].size(); j++) {
-            GraphPoint* temp = new GraphPoint(std::to_string(graph.size()), lines[i][j].x, lines[i][j].y);
+            GraphPoint* temp = new GraphPoint(getUniqueName(), lines[i][j].x, lines[i][j].y);
             if (j > 0) {
                 temp->addConection(graph.back());
                 graph.back()->addConection(temp);
@@ -163,49 +166,86 @@ int main() {
                             cv2.circle(image, (round(point[0]), round(point[1])), 3, (0, 255, 255), -1)
     */
     std::cout << "main points graphed\nfinding intersections\n";
+    
     std::vector<point> intersectingPoints;
-    std::vector<GraphPoint> tempIntersectionGraph;
     std::vector<std::vector<int>> intersectionConnections;
+
     for (int i = 0; i < lines.size(); i++) {
         for (int j = i; j < lines.size(); j++) {
-            for (int k = 0; k < lines[i].size() -1; k++) {
-                for (int l = 0; l < lines[j].size() -1; l++) {
-                    if (doIntersect(lines[i][k], lines[i][k+1], lines[j][l], lines[j][l+1]) && ((lines[i][k] != lines[j][l]) && (lines[i][k + 1] != lines[j][l + 1])) && ((lines[i][k+1] != lines[j][l]) && (lines[i][k] != lines[j][l + 1]))) {
-                        point p = intersection(lines[i][k], lines[i][k + 1], lines[j][l], lines[j][l + 1]);
-                        if (p.x == -1 && p.y == -1) {
-                            continue;
+            for (int k = 0; k < lines[i].size() - 1; k++) {
+                for (int l = 0; l < lines[j].size() - 1; l++) {
+                    // Avoid comparing the same segment
+                    if (i == j && k == l) continue;
+                    point p1 = lines[i][k];
+                    point q1 = lines[i][k + 1];
+                    point p2 = lines[j][l];
+                    point q2 = lines[j][l + 1];
+                    if (doIntersect(p1, q1, p2, q2) &&
+                        (p1 != p2 && q1 != q2) &&
+                        (q1 != p2 && p1 != q2)) {
+                        point inter = intersection(p1, q1, p2, q2);
+                        if (inter.x == -1 && inter.y == -1) continue; // Parallel lines
+                        // Avoid duplicates
+                        bool duplicate = false;
+                        for (const auto& pt : intersectingPoints) {
+                            if (pt.x == inter.x && pt.y == inter.y) {
+                                duplicate = true;
+                                break;
+                            }
                         }
-                        intersectingPoints.push_back(p);
-                        std::vector<int> tempConnection = {i*((int)lines[0].size()-1)+k, j*((int)lines[0].size()-1)+l, i*((int)lines[0].size()-1)+k+1, j*((int)lines[0].size()-1)+l+1};
-                        intersectionConnections.push_back(tempConnection);
+                        if (!duplicate) {
+                            intersectingPoints.push_back(inter);
+                            // Store indices of involved points in graph
+                            // Each segment corresponds to two points in graph:
+                            // The graph is built sequentially, so offset is cumulative
+                            int idx1 = 0, idx2 = 0, idx3 = 0, idx4 = 0;
+                            int offset_i = 0, offset_j = 0;
+                            for (int m = 0; m < i; m++) offset_i += lines[m].size();
+                            for (int m = 0; m < j; m++) offset_j += lines[m].size();
+                            idx1 = offset_i + k;
+                            idx2 = offset_i + k + 1;
+                            idx3 = offset_j + l;
+                            idx4 = offset_j + l + 1;
+                            intersectionConnections.push_back({idx1, idx2, idx3, idx4});
+                        }
                     }
                 }
             }
         }
     }
-    std::cout << "found " << intersectingPoints.size() << " intersections\n";
-    for (int n = 0; n < intersectingPoints.size(); n++) {
-        int i = intersectionConnections[n][0] / (lines[0].size() - 1);
-        int j = intersectionConnections[n][1] / (lines[0].size() - 1);
-        int k = intersectionConnections[n][2] / (lines[0].size() - 1);
-        int l = intersectionConnections[n][3] / (lines[0].size() - 1);
+
+    // Add intersection nodes and update connections
+    for (size_t n = 0; n < intersectingPoints.size(); n++) {
         point p = intersectingPoints[n];
-        GraphPoint* tempNode = new GraphPoint(std::to_string(graph.size()+tempIntersectionGraph.size()), p.x, p.y);
-        int requiredNodesIndeces[4] = {i, j, k, l};
-        for (int m = 0; m < 4; m++) {
-            graph[requiredNodesIndeces[m]]->addConection(tempNode);
-            tempNode->addConection(graph[requiredNodesIndeces[m]]);
-            graph[requiredNodesIndeces[m]]->removeConection(graph[requiredNodesIndeces[(m+2)%4]]);
-        }
-        tempIntersectionGraph.push_back(*tempNode);
+        GraphPoint* interNode = new GraphPoint(getUniqueName(), p.x, p.y);
+
+        // Get indices of the four involved endpoints
+        int idx1 = intersectionConnections[n][0];
+        int idx2 = intersectionConnections[n][1];
+        int idx3 = intersectionConnections[n][2];
+        int idx4 = intersectionConnections[n][3];
+
+        // Connect intersection node to endpoints
+        interNode->addConection(graph[idx1]);
+        interNode->addConection(graph[idx2]);
+        interNode->addConection(graph[idx3]);
+        interNode->addConection(graph[idx4]);
+
+        graph[idx1]->addConection(interNode);
+        graph[idx2]->addConection(interNode);
+        graph[idx3]->addConection(interNode);
+        graph[idx4]->addConection(interNode);
+
+        // Remove original connections between endpoints that are split
+        graph[idx1]->removeConection(graph[idx2]);
+        graph[idx2]->removeConection(graph[idx1]);
+        graph[idx3]->removeConection(graph[idx4]);
+        graph[idx4]->removeConection(graph[idx3]);
+
+        // Add intersection node to graph
+        graph.push_back(interNode);
     }
-    for (int i = 0; i < tempIntersectionGraph.size(); i++) {
-        GraphPoint* temp = new GraphPoint(std::to_string(graph.size()), tempIntersectionGraph[i].x, tempIntersectionGraph[i].y);
-        for (GraphPoint* conn : tempIntersectionGraph[i].connections) {
-            temp->addConection(conn);
-        }
-        graph.push_back(temp);
-    }
+
     std::cout << "intersections found\n";
     std::cout << "total points: " << graph.size() << "\n";
     //check if there are any repeat names
