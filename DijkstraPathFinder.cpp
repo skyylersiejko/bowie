@@ -77,6 +77,9 @@ std::vector<std::string> dijkstraPath(std::vector<Node>& ParsedPoints, std::stri
     std::priority_queue<std::pair<int,int>, std::vector<std::pair<int,int>>, std::greater<std::pair<int,int>>> pq;
     pq.push(std::make_pair(0, start));
 
+    std::vector<int> prev(n, -1);
+
+
     while (!pq.empty()) {
         int current = pq.top().second;
         int current_dist = pq.top().first;
@@ -85,27 +88,30 @@ std::vector<std::string> dijkstraPath(std::vector<Node>& ParsedPoints, std::stri
         if (visited[current]) continue;
         visited[current] = true;
 
-        // relax edges
         for (const auto& edge : graph[current]) {
             int neighbor = edge.first;
-            currentPath.push_back(ParsedPoints[current].name);
             int weight = edge.second;
             if (!visited[neighbor] && current_dist != INF) {
                 int new_dist = current_dist + weight;
                 if (new_dist < dist[neighbor]) {
                     dist[neighbor] = new_dist;
-                    path.clear();
-                    for (int i = 0; i < currentPath.size(); i++) {if (path.empty() || path.back() != currentPath[i]) {path.push_back(currentPath[i]);}}
-                    path.push_back(ParsedPoints[neighbor].name);
+                    prev[neighbor] = current; // Track previous node
                     pq.push(std::make_pair(new_dist, neighbor));
                 }
-            } else if (neighbor == end) {
-                pq.push(std::make_pair(current_dist + weight, neighbor));
-                break;
             }
         }
     }
 
+    // Reconstruct path from end to start
+    if (dist[end] == INF) {
+        // No path found
+        return {};
+    }
+    for (int at = end; at != -1; at = prev[at]) {
+        path.push_back(ParsedPoints[at].name);
+        if (at == start) break; // Stop when start is reached
+    }
+    std::reverse(path.begin(), path.end());
     return path;
 }
 
@@ -231,7 +237,6 @@ int main(int argc, char* argv[]) {
     std::cin >> p1;
     std::cout << "enter name of end point: ";
     std::cin >> p2;*/
-
     // Implement Dijkstra's algorithm here to find the shortest path from p1 to p2
     std::cout << "Starting Dijkstra's algorithm from " << p1 << " to " << p2 << std::endl;
     //std::cout << findNodeByName(ParsedPoints, "5");
@@ -249,12 +254,19 @@ int main(int argc, char* argv[]) {
 
     std::ofstream outFile("dotter/bestPath.json");
     outFile << "{\n";
-    for (int i = 0; i < path.size()-1; i++) {
-        Node currentNode = findNodeByName(ParsedPoints, path[i]);
-        outFile << "\"" << currentNode.name << "\": {\"x\":" << currentNode.x << ", \"y\":" << currentNode.y << ", \"connections\": [";
-        outFile << (i == path.size() - 1 ? "" : "\"") << (i == path.size() - 1 ? "" :  path[i+1]);
-        outFile << "\"]}" << (i == path.size() - 2 ? "}" : ",\n");
+    for (int i = 0; i < path.size(); i++) {
+    Node currentNode = findNodeByName(ParsedPoints, path[i]);
+    outFile << "\"" << currentNode.name << "\": {\"x\":" << currentNode.x << ", \"y\":" << currentNode.y << ", \"connections\": [";
+    if (i < path.size() - 1) {
+        outFile << "\"" << path[i+1] << "\"";
     }
+    outFile << "]}";
+    if (i == path.size() - 1) {
+        outFile << "\n}";
+    } else {
+        outFile << ",\n";
+    }
+}
     outFile.close();
     std::cout << "Path written to dotter/bestPath.json\nexiting\n";
 

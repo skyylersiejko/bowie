@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 class GraphPoint {
 public:
@@ -27,8 +28,6 @@ struct point {
         return (x != other.x) || (y != other.y);
     }
 };
-#include <iostream>
-#include <algorithm>
 
 bool onSegment(point p, point q, point r) {
     return (q.x <= std::max(p.x, r.x) && q.x >= std::min(p.x, r.x) && q.y <= std::max(p.y, r.y) && q.y >= std::min(p.y, r.y));

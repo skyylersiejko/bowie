@@ -10,14 +10,12 @@ class Point:
         self.name = name
 setofPoints = []
 
-
-
 try:
     with open("dotter/graph.json", 'r') as file:
         points = json.load(file)
 
     for i in range(len(points)):
-        other_i = str(i)
+        other_i = list(points.keys())[i]
         point_data = Point(points[other_i]["x"], points[other_i]["y"], other_i)
         setofPoints.append(point_data)
         globals()[f"p{i}"] = point_data
