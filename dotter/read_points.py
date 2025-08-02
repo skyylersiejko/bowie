@@ -24,7 +24,7 @@ def mouse_callback(event, x, y, flags, params):
             for i, point in enumerate(points):
                 cv2.circle(image, point, 5, (255, 0, 255), -1)
                 if i > 0:
-                    cv2.line(image, points[i - 1], point, (255, 0, 255), 2)
+                    cv2.line(image, points[i - 1], point, (255, 128, 128), 2)
 
 try:
     frame = cv2.imread("Stanford_map.png")
@@ -40,22 +40,15 @@ try:
         if key == ord('r') or key == ord('n'):
             reRun = True
             break
-        cv2.circle(image, (710, 760), 3, (255, 0, 255), -1)
+        cv2.circle(image, (925, 355), 5, (255, 128, 128), -1)
 
 #with open("bestPath.json", 'r') as file:
  #       points = json.load(file)
   #      for data in points.values():
-     
 
-    
-    
     
 except FileNotFoundError:
     print(f"Error: The file was not found.")
 
-<<<<<<< Updated upstream
-
-
 file.close()
-=======
->>>>>>> Stashed changes
+
