@@ -17,8 +17,8 @@ setofPoints = []
 def pinPoint(loc):
     for i in range(pin.shape[0]):
         for j in range(pin.shape[1]):
-            width = i+loc[0]-pin.shape[0]//2
-            height = j+loc[1]-pin.shape[1]
+            width = i+loc[0]-pin.shape[0]
+            height = j+loc[1]-pin.shape[1]//2
             if list(pin[i][j]) != [232, 162, 0] and height < frame.shape[1]-1 and height >= 0 and width < frame.shape[0]-1 and width >= 0:
                 frame[width][height] = pin[i][j]
 
