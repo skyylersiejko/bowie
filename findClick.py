@@ -17,8 +17,10 @@ setofPoints = []
 def pinPoint(loc):
     for i in range(pin.shape[0]):
         for j in range(pin.shape[1]):
-            if list(pin[i][j]) != [232, 162, 0]:
-                frame[i+loc[0]-pin.shape[0]//2][j+loc[1]-pin.shape[1]] = pin[i][j]
+            width = i+loc[0]-pin.shape[0]//2
+            height = j+loc[1]-pin.shape[1]
+            if list(pin[i][j]) != [232, 162, 0] and height < frame.shape[1]-1 and height >= 0 and width < frame.shape[0]-1 and width >= 0:
+                frame[width][height] = pin[i][j]
 
 def drawPath(path="path/conner.json"):
     global image
@@ -124,7 +126,7 @@ def mouse_callback(event, x, y, flags, params, points=allPoints):
 
 frame = cv2.imread("dotter/Screenshot 2025-07-28 221547.png")
 sprite = cv2.imread("treeWithBackground.png")
-pin = cv2.imread("pinWithBackground.png")
+pin = cv2.imread("s.png")
 sprite = cv2.resize(sprite, (sprite.shape[0]//2, sprite.shape[1]//2))
 
 for setofPoints in pointsMain:
@@ -141,10 +143,12 @@ for setofPoints in pointsMain:
 try:
     with open("pointsOfIntrest.json", 'r') as file:
         points = json.load(file)
+        print(list(points.keys()))
         for i in list(points.keys()):
-            pinPoint((points[i]["x"], points[i]["y"]))
-except:
-    print("no point of intrest")
+            pinPoint((points[i]["y"], points[i]["x"]))
+            print(i)
+except Exception as e:
+    print(e)
 
 loc = [0, 0]
 image = frame.copy()

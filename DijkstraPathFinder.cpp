@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
         p1 = argv[1];
         p2 = argv[2];
     }
-    std::ifstream f("dotter/graph.json");
+    std::ifstream f("graphs/conner.json");
 
     // Check if the file is 
     // successfully opened
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Path found, writing to file";
 
-    std::ofstream outFile("dotter/bestPath.json");
+    std::ofstream outFile("path/conner.json");
     outFile << "{\n";
     for (int i = 0; i < path.size(); i++) {
     Node currentNode = findNodeByName(ParsedPoints, path[i]);

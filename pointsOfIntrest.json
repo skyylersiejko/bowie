@@ -1,16 +1,18 @@
 {
-    "Anderson collection": {"x" : 530, "y": 30},
-    "Arguello Park": {"x" : 820, "y": 579},
-    "Arillaga Alumni Center": {"x" : 790 , "y": 200},
-    "Athletics": {"x" : 1080, "y": 210},
-    "Avery Plaza": {"x" : 1000, "y": 140 },
-    "Bookstore": {"x" : 625, "y": 555 },
-    "Cantor Arts Center": {"x" : 530, "y": 70},
-    "Graduate School of Business": {"x" : 925, "y": 355 },
-    "Meyer Green": {"x" : 680, "y": 500 },
-    "Pearce Mitchell Houses": {"x" : 710, "y": 760 },
-    "Rodane_Garden_or_Stature": {"x" :510, "y": 117},
-    "Stern Hall": {"x" : 780, "y": 572 },
-    "The Oval": {"x": 590, "y": 250  },
-    "Varsity Lot": {"x" : 1030, "y":  90}
+    "Anderson_collection": {"x": 530, "y": 30},
+    "Arguello_Park": {"x": 820, "y": 579},
+    "Arillaga_Alumni_Center": {"x": 790 , "y": 200},
+    "Athletics": {"x": 1080, "y": 210},
+    "Avery_Plaza": {"x": 1000, "y": 140 },
+    "Bookstore": {"x": 625, "y": 555 },
+    "Cantor_Arts_Center": {"x": 530, "y": 70},
+    "Graduate_School_of_Business": {"x" : 925, "y": 355 },
+    "Meyer_Green": {"x": 680, "y": 500 },
+    "Pearce_Mitchell_Houses": {"x": 710, "y": 760 },
+    "Rodane_Garden_or_Stature": {"x": 510, "y": 117},
+    "Stern_Hall": {"x" : 780, "y": 572 },
+    "The_Oval": {"x": 590, "y": 250  },
+    "Varsity_Lot": {"x" : 1030, "y":  90}
 }
+
+  
