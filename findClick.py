@@ -81,8 +81,10 @@ for i in ["conner"]:
 def drawSprite(loc):
     for i in range(sprite.shape[0]):
         for j in range(sprite.shape[1]):
-            if list(sprite[i][j]) != [232, 162, 0]:
-                image[i+loc[0]][j+loc[1]] = sprite[i][j]
+            height = j+loc[1]
+            width = i+loc[0]
+            if list(sprite[i][j]) != [232, 162, 0] and height < frame.shape[1]-1 and height >= 0 and width < frame.shape[0]-1 and width >= 0:
+                image[width][height] = sprite[i][j]
 
 allPoints = []
 
